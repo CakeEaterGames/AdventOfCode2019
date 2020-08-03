@@ -27,6 +27,16 @@ namespace AdventOfCode2019
             return res;
         }
 
+        public static long[] StringArrayToLongArray(string[] inp)
+        {
+            var res = new long[inp.Length];
+            for (int i = 0; i < res.Length; i++)
+            {
+                res[i] = long.Parse(inp[i]);
+            }
+            return res;
+        }
+
         public static int[] StringToIntArray(string inp)
         {
             var res = new int[inp.Length];
@@ -42,12 +52,15 @@ namespace AdventOfCode2019
             return StringArrayToIntArray(inp.Split(spl));
         }
 
-        public static string ArrayToString(int[] arr)
+        public static long[] SplitToLongArray(string inp, char spl)
+        {
+            return StringArrayToLongArray(inp.Split(spl));
+        }
+
+        public static string ArrayToString<T>(T[] arr)
         {
             string res = "";
-
             res += "[";
-
             foreach (var a in arr)
             {
                 res += a + ", ";
@@ -59,8 +72,6 @@ namespace AdventOfCode2019
             }
 
             res += "]";
-
-
             return res;
         }
     }
