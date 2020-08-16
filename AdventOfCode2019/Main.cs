@@ -12,7 +12,7 @@ namespace AdventOfCode2019
     {
         static void Main(string[] args)
         {
-            Problem a = new Day10b();
+            Problem a = new Day11b();
             StreamReader sr = new StreamReader("input.txt");
             StreamWriter sw = new StreamWriter("output.txt");
 
