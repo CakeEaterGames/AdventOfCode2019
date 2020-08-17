@@ -17,8 +17,6 @@ namespace AdventOfCode2019.Solutions
                 x = a;
                 y = b;
                 z = c;
-
-
             }
             public void move()
             {

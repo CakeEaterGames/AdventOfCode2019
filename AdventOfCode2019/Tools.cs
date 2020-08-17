@@ -74,5 +74,24 @@ namespace AdventOfCode2019
             res += "]";
             return res;
         }
+
+        public static string ListToString<T>(List<T> arr)
+        {
+            string res = "";
+            res += "[";
+            foreach (var a in arr)
+            {
+                res += a + ", ";
+            }
+
+            if (res.Length > 1)
+            {
+                res = res.Remove(res.Length - 2);
+            }
+
+            res += "]";
+            return res;
+        }
+
     }
 }

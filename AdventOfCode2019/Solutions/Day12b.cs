@@ -40,16 +40,7 @@ namespace AdventOfCode2019.Solutions
             }
             public override string ToString()
             {
-
-                return vx+" ";
-                //return vx + " " + vy + " " + vz + " ";
-
-
-                //  return x + " " + y + " " + z + " ";
-
-                //return x + " " + y + " " + z + " " + vx + " " + vy + " " + vz+" ";
-
-                // return "pos=(" + x + " " + y + " " + z + ") vel=(" + vx + " " + vy + " " + vz + ")";
+                return "pos=(" + x + " " + y + " " + z + ") vel=(" + vx + " " + vy + " " + vz + ")";
             }
         }
 
@@ -92,55 +83,67 @@ namespace AdventOfCode2019.Solutions
         long repY = 0;
         long repZ = 0;
 
-        long _gcd(long a, long b)
-        {
 
-            while (a != b)
+        long lcm(long a, long b)
+        {
+            List<int> parts = new List<int>();
+            while (a>1)
             {
-                if (a > b)
+                for (int i=2;i<=a;i++)
                 {
-                    long tmp = a;
-                    a = b;
-                    b = tmp;
+                    if (a%i==0)
+                    {
+                        a /= i;
+                        parts.Add(i);
+                        i--;
+                    }
                 }
-                b = b - a;
-            }
-            return a;
-        }
-
-       
-        public static long gcd(long a, long b)
-        {
-            if (a>b)
-            {
-                var t = a;
-                a = b;
-                b = t;
             }
 
-            while (b != 0)
+            List<int> parts2 = new List<int>();
+            while (b > 1)
             {
-                long temp = b;
-                b = a % b;
-                a = temp;
+                for (int i = 2; i <= b; i++)
+                {
+                    if (b % i == 0)
+                    {
+                        b /= i;
+                        parts2.Add(i);
+                        i--;
+                    }
+                }
             }
-            return a;
+
+            long res = 1;
+            foreach (var p in parts)
+            {
+                if (parts2.Contains(p))
+                {
+                    parts2.Remove(p);
+                }
+                res *= p;
+            }
+            foreach (var p in parts2)
+            {
+                res *= p;
+            }
+           // Console.WriteLine(Tools.ListToString(parts));
+
+            return res;
         }
 
         public override void Calc()
-        {/*
+        { /*
             int q = 286332;
             int w = 167624;
             int e = 96236;
 
-            var t = gcd(q, w);
-            Console.WriteLine(t);
-            Console.WriteLine(q*w / t);
-            Console.WriteLine(q / t * w);
-            */
+            Console.WriteLine(lcm(q, w));
+            Console.WriteLine(lcm(lcm(q,w),e));
+           // 288684633706728
 
             Console.WriteLine(long.MaxValue.ToString().Length);
-
+            */
             var s = input.Replace("<", "").Replace(">", "").Replace(" ", "").Replace("\r\n", ",").Replace("x=", "").Replace("y=", "").Replace("z=", "");
             var r = s.Split(',');
             var nums = Tools.SplitToIntArray(s, ',');
@@ -230,28 +233,14 @@ namespace AdventOfCode2019.Solutions
                 }
 
                 if (repX != 0 && repY != 0 && repZ != 0)
-                {/*
-                    repX = 2;
-                    repY = 6;
-                    repZ = 3;
-                    */
-                    Console.WriteLine(repX);
-                    Console.WriteLine(repY);
-                    Console.WriteLine(repZ);
-
-                    long t = gcd(repY, repY);
-
-                    long a = (repX / t * repY);
-                    Console.WriteLine(a);
-
-                    t = gcd(a, repZ);
-
-
-                    output = ((a / t * repZ) ) + "";
-                   // var a =  (gcd(gcd(repX, repY), repZ)) ;
-
-                   //output = (repX / a * repY / a * repX)+"";
-
+                {
+                    /*
+                          Console.WriteLine(repX);
+                          Console.WriteLine(repY);
+                          Console.WriteLine(repZ);
+                        */
+                    output = lcm(lcm(repX, repY), repZ)+"";
+                  
                     break;
                 }
 
