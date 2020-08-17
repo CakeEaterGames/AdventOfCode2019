@@ -48,10 +48,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Solutions\Day10b.cs" />
     <Compile Include="Solutions\Day10a.cs" />
+    <Compile Include="Solutions\Day13b.cs" />
+    <Compile Include="Solutions\Day13a.cs" />
     <Compile Include="Solutions\Day11b.cs" />
     <Compile Include="Solutions\Day11a.cs" />
     <Compile Include="Solutions\Day12b.cs" />
     <Compile Include="Solutions\Day12a.cs" />
+    <Compile Include="Solutions\Day14a.cs" />
     <Compile Include="Solutions\Day9b.cs" />
     <Compile Include="Solutions\Day9a.cs" />
     <Compile Include="Solutions\Day8b.cs" />
