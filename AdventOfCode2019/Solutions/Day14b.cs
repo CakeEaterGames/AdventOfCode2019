@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AdventOfCode2019.Solutions
 {
-    public class Day14a : Problem
+    public class Day14b : Problem
     {
 
         class recepie
@@ -18,14 +18,43 @@ namespace AdventOfCode2019.Solutions
 
            public List<recepie> componentsLink = new List<recepie>();
 
-            public int available = 0;
+            public long available = 0;
+/*
+            bool downgraded = false;
+            void downgrade()
+            {
+                if (!downgraded)
+                {
 
+                for (int i = 0; i < componentsLink.Count; i++)
+                {
+                    quantities[i] /= 10;
+                }
+                quantity /= 10;
+                downgraded = true;
+
+                }
+            }
+            */
             public void craft()
             {
+                if (result == "ORE")
+                {
+                    Console.WriteLine("Not enough ore");
+                    Console.ReadLine();
+                    return;
+                }
+
                 for (int i = 0; i < componentsLink.Count; i++)
                 {
                     if (componentsLink[i].available<quantities[i])
                     {
+                        /*if (componentsLink[i].components[0]=="ORE")
+                        {
+                            downgrade();
+                            i = -1;
+                            continue;
+                        }*/
                         componentsLink[i].craft();
                         i = -1;
                         continue;
@@ -34,7 +63,6 @@ namespace AdventOfCode2019.Solutions
                 for (int i = 0; i < componentsLink.Count; i++)
                 {
                     componentsLink[i].available -= quantities[i];
-                    //Console.WriteLine(componentsLink[i].available);
                 }
 
                 available += quantity;
@@ -49,8 +77,10 @@ namespace AdventOfCode2019.Solutions
                 {
                     res += quantities[i] + " " + components[i] + ", ";
                 }
+                res += "Available: " + available;
                 return res;
             }
+
         }
 
 
@@ -60,14 +90,16 @@ namespace AdventOfCode2019.Solutions
         Dictionary<string, int> have = new Dictionary<string, int>();
         Dictionary<string, int> need = new Dictionary<string, int>();
 
-
+        const long tril = 1000000000000;
         public override void Calc()
         {
+          
+
             input = input.Replace(" => ", "=").Replace(", ", ",");
             //Console.WriteLine(input);
             var lines = input.Split('\n');
 
-
+            int mul = 1;
             foreach (var a in lines)
             {
                 recepie r = new recepie();
@@ -78,7 +110,7 @@ namespace AdventOfCode2019.Solutions
                 foreach (var d in c)
                 {
                     var e = d.Split(' ');
-                    r.quantities.Add(int.Parse(e[0]));
+                    r.quantities.Add(int.Parse(e[0])*mul);
                     r.components.Add(e[1]);
                 }
 
@@ -86,19 +118,27 @@ namespace AdventOfCode2019.Solutions
                 foreach (var d in c)
                 {
                     var e = d.Split(' ');
-                    r.quantity = int.Parse(e[0]);
+                    r.quantity = int.Parse(e[0]) * mul;
                     r.result = e[1];
                 }
 
                 rec.Add(r.result, r);
  
             }
+
+          
+
             recepie rr = new recepie();
             rr.result = "ORE";
-            rr.available = int.MaxValue;
+            rr.available = tril;
             rec.Add(rr.result, rr);
-
-
+/*
+            foreach (var r in  rec)
+            {
+                Console.WriteLine(r);
+            }
+            Console.ReadLine();
+            */
             foreach (var r in rec)
             {
                 foreach (var r2 in r.Value.components)
@@ -107,11 +147,53 @@ namespace AdventOfCode2019.Solutions
                 }
             }
 
-            rec["FUEL"].craft();
+
+
+            int t = 0;
+
+            while (rec["ORE"].available > 0)
+            {
+
+               /* foreach (var r in rec)
+                {
+                    Console.WriteLine(r);
+                }
+                Console.ReadLine();
+                */
+                rec["FUEL"].craft();
+                t++;
+
+                if (t%5000==0)
+                {
+                    Console.WriteLine((int)(tril/((double)(tril - rec["ORE"].available) / (double)rec["FUEL"].available)));
+
+                }
+
+                //  bool found = false;
+                /*   foreach (var r in rec)
+                   {
+                       if (r.Value.available>0 && r.Key != "ORE" && r.Key != "FUEL")
+                       {
+                           found = true;
+                           break;
+                       }
+                   }
+
+                   if (!found)
+                   {
+                       foreach (var r in rec)
+                       {
+                           Console.WriteLine(r);
+                       }
+                   }
+                   */
+            }
+
+           
 
 
 
-          output = (int.MaxValue - rec["ORE"].available)+"";
+          output = (rec["FUEL"].available)+"";
  
            
         }
