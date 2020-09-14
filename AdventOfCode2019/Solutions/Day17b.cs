@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace AdventOfCode2019.Solutions
 {
-    public class Day15b_anim : Problem
+    public class Day17b : Problem
     {
+
         class computer
         {
             public string inputProgram;
@@ -293,317 +293,148 @@ namespace AdventOfCode2019.Solutions
 
         }
 
-        struct point
-        {
-            public int x;
-            public int y;
-            public point(int a, int b)
-            {
-                x = a;
-                y = b;
-            }
-        }
-
-        point pos = new point(0, 0);
-
-        List<point> walls = new List<point>();
-        List<point> spaces = new List<point>();
-        List<point> special = new List<point>();
-        List<point> oxygen = new List<point>();
-
-        char[][] screen;
-        int w = 75;
-        int h = 50;
-
-        Stack<int> moves = new Stack<int>();
 
         public override void Calc()
         {
-
-            screen = new char[h][];
-
-            for (int i = 0; i < h; i++)
-            {
-                screen[i] = new char[w];
-                for (int j = 0; j < w; j++)
-                {
-                    screen[i][j] = ' ';
-                }
-            }
-            spaces.Add(new point(0, 0));
-            //  special.Add(new point(0, 0));
-
-
-
             computer com = new computer();
-            com.inputProgram = input;
+            com.inputProgram = 2 + input.Remove(0, 1);
 
-
-            // com.toLog = true;
             com.Init();
 
-            Random rng = new Random();
+            com.Calc();
+            string scr = "";
+            while (com.outputs.Count > 0)
+            {
+                scr += getAscii(com.outputs.Dequeue() + "");
+            }
+            Console.WriteLine(scr);
+
+
+
+
+            var r = scr.Split('\n');
+            int start = scr.IndexOf('^');
+            int startY = start / r[0].Length;
+            int startX = r[startY].IndexOf('^');
+
+            int x = startX;
+            int y = startY;
+
+            int sx = 0;
+            int sy = -1;
+            int curDir = 0;
+            turn(0);
+            look();
+
+            char rr(int gy, int gx)
+            {
+                if (gy >= 0 && gx >= 0)
+                    if (r.Length > gy && r[gy].Length > gx)
+                    {
+                        return r[gy][gx];
+                    }
+                return '.';
+            }
+
+            void turn(int dir)
+            {
+                dir += 4;
+                dir %= 4;
+                switch (dir)
+                {
+                    case 0: sx = 0; sy = -1; break;
+                    case 1: sx = 1; sy = 0; break;
+                    case 2: sx = 0; sy = 1; break;
+                    case 3: sx = -1; sy = 0; break;
+                }
+                curDir = dir;
+            }
+            int look()
+            {
+                bool l = false, rt = false, u = false, d = false;
+
+                if (rr(y - 1, x) == '#') u = true;
+                if (rr(y + 1, x) == '#') d = true;
+                if (rr(y, x - 1) == '#') l = true;
+                if (rr(y, x + 1) == '#') rt = true;
+
+                //    Console.WriteLine(u + " " + d + " " + l + " " + rt);
+                //   Console.WriteLine(curDir);
+
+                int res = 0;
+                switch (curDir)
+                {
+                    case 0: if (l) res = -1; if (rt) res = 1; break;
+                    case 1: if (u) res = -1; if (d) res = 1; break;
+                    case 2: if (l) res = 1; if (rt) res = -1; break;
+                    case 3: if (u) res = 1; if (d) res = -1; break;
+                }
+                //   Console.WriteLine(res);
+
+
+                return res;
+            }
+
+
+            List<string> paths = new List<string>();
             while (true)
             {
-                com.Calc();
-
-                var dirn = 0;
-                //   Console.ReadLine();
-                var ch = findDir();
-                dirn = ch;
-
-                bool isBack = false;
-
-                if (dirn >= 1 && dirn <= 4)
+                int count = 0;
+                while (rr(y + sy, x + sx) == '#')
                 {
-                    com.inputs.Enqueue(dirn);
-                    com.Calc();
-                    isBack = false;
+                    count++;
+                    y += sy;
+                    x += sx;
+                }
+                paths.Add(count + "");
+                var l = look();
+
+                turn(curDir + l);
+                if (l == 1)
+                {
+                    paths.Add("R");
+                }
+                else if (l == -1)
+                {
+                    paths.Add("L");
                 }
                 else
                 {
-                    if (moves.Count == 0)
-                    {
-                        break;
-                    }
-                    dirn = anti(moves.Pop());
-                    com.inputs.Enqueue(dirn);
-                    com.Calc();
-                    isBack = true;
-                }
-
-                if (com.outputs.Count > 0)
-                {
-
-
-                    var o = com.outputs.Dequeue();
-
-                    if (o == 0)//wall
-                    {
-                        switch (dirn)
-                        {
-                            case 1: walls.Add(new point(pos.x, pos.y + 1)); break;
-                            case 2: walls.Add(new point(pos.x, pos.y - 1)); break;
-                            case 3: walls.Add(new point(pos.x - 1, pos.y)); break;
-                            case 4: walls.Add(new point(pos.x + 1, pos.y)); break;
-                        }
-                    }
-                    else if (o == 1) //empty
-                    {
-                        switch (dirn)
-                        {
-                            case 1: spaces.Add(new point(pos.x, pos.y + 1)); pos.y++; break;
-                            case 2: spaces.Add(new point(pos.x, pos.y - 1)); pos.y--; break;
-                            case 3: spaces.Add(new point(pos.x - 1, pos.y)); pos.x--; break;
-                            case 4: spaces.Add(new point(pos.x + 1, pos.y)); pos.x++; break;
-                        }
-                        if (!isBack)
-                        {
-                            moves.Push(dirn);
-                        }
-
-                    }
-                    else if (o == 2)//found
-                    {
-                        switch (dirn)
-                        {
-                            case 1: special.Add(new point(pos.x, pos.y + 1)); pos.y++; break;
-                            case 2: special.Add(new point(pos.x, pos.y - 1)); pos.y--; break;
-                            case 3: special.Add(new point(pos.x - 1, pos.y)); pos.x--; break;
-                            case 4: special.Add(new point(pos.x + 1, pos.y)); pos.x++; break;
-                        }
-                        if (!isBack)
-                        {
-                            moves.Push(dirn);
-                        }
-
-
-
-                    }
-
-
-                }
-
-                  clear();
-                  setScreen();
-                  Console.Clear();
-                  writeScreen(); 
-                  Thread.Sleep(2);
-            }
-              clear();
-            setScreen();
-              Console.Clear();
-               writeScreen();
-            Thread.Sleep(2);
-            oxygen.Add(special[0]);
-            while (special.Contains(oxygen[0]))
-            {
-                special.Remove(special[0]);
-            }
-            int ox = w / 2 - pos.x;
-            int oy = h / 2 - pos.y;
-
-            int timer = 0;
-
-            while (true)
-            {
-                List<point> more = new List<point>();
-                foreach (var o in oxygen)
-                {
-                    if (screen[o.y + 1 + oy][o.x + ox] == '.')
-                    {
-                        more.Add(new point(o.x, o.y + 1));
-                    }
-                    if (screen[o.y - 1 + oy][o.x + ox] == '.')
-                    {
-                        more.Add(new point(o.x, o.y - 1));
-                    }
-                    if (screen[o.y + oy][o.x + 1 + ox] == '.')
-                    {
-                        more.Add(new point(o.x + 1, o.y));
-                    }
-                    if (screen[o.y + oy][o.x - 1 + ox] == '.')
-                    {
-                        more.Add(new point(o.x - 1, o.y));
-                    }
-                }
-
-                if (more.Count > 0)
-                {
-                    foreach (var a in more)
-                    {
-                        oxygen.Add(a);
-                    }
-                    clear();
-                    setScreen();
-                    Console.Clear();
-                    writeScreen();
-                    Thread.Sleep(2);
-                    timer++;
-                }
-                else
-                {
-                    output = timer+"";
                     break;
                 }
-
             }
-            clear();
-            setScreen();
-            Console.Clear();
-            writeScreen();
-            Thread.Sleep(10);
 
-        }
-
-        int anti(int a)
-        {
-            switch (a)
+            if (paths[0] == "0")
             {
-                case 1: return 2;
-                case 2: return 1;
-                case 3: return 4;
-                case 4: return 3;
+                paths.RemoveAt(0);
             }
-            return a;
-        }
 
-        int findDir()
-        {
-            if (!isVisible(new point(pos.x, pos.y + 1))) return 1;
-            else if (!isVisible(new point(pos.x, pos.y - 1))) return 2;
-            else if (!isVisible(new point(pos.x - 1, pos.y))) return 3;
-            else if (!isVisible(new point(pos.x + 1, pos.y))) return 4;
-            else return 0;
-        }
+            Console.WriteLine(String.Join(",", paths));
 
-        bool isVisible(point a)
-        {
-            if (walls.Contains(a) || spaces.Contains(a) || special.Contains(a))
+            while (!com.done)
             {
-                return true;
-            }
-            return false;
-        }
 
-        void clear()
-        {
-            for (int i = 0; i < screen.Length; i++)
-            {
-                for (int j = 0; j < screen[i].Length; j++)
+                // Console.ReadLine();
+                Console.WriteLine("waiting for input");
+              
+                var c = Console.ReadLine();
+                foreach (char a in c)
                 {
-                    screen[i][j] = ' ';
+                    com.inputs.Enqueue((int)a);
+                }
+                com.inputs.Enqueue((int)'\n');
+                com.Calc();
+                while (com.outputs.Count > 0)
+                {
+                   Console.Write(getAscii(com.outputs.Dequeue() + ""));
                 }
             }
+            output = com.output + "" ;
+
         }
-
-
-
-
-        void setScreen()
+        char getAscii(string s)
         {
-            int offx = w / 2 - pos.x;
-            int offy = h / 2 - pos.y;
-
-
-            foreach (var a in walls)
-            {
-                var b = new point(a.x + offx, a.y + offy);
-                if (b.x >= 0 && b.y >= 0 && b.y < screen.Length && b.x < screen[0].Length)
-                {
-                    screen[b.y][b.x] = '#';
-                }
-            }
-
-
-            foreach (var a in spaces)
-            {
-                var b = new point(a.x + offx, a.y + offy);
-                if (b.x >= 0 && b.y >= 0 && b.y < screen.Length && b.x < screen[0].Length)
-                {
-                    screen[b.y][b.x] = '.';
-                }
-            }
-
-            foreach (var a in special)
-            {
-                var b = new point(a.x + offx, a.y + offy);
-                if (b.x >= 0 && b.y >= 0 && b.y < screen.Length && b.x < screen[0].Length)
-                {
-                    screen[b.y][b.x] = '%';
-                }
-            }
-
-            foreach (var a in oxygen)
-            {
-                var b = new point(a.x + offx, a.y + offy);
-                if (b.x >= 0 && b.y >= 0 && b.y < screen.Length && b.x < screen[0].Length)
-                {
-                    screen[b.y][b.x] = 'o';
-                }
-            }
-
-
-            screen[h / 2][w / 2] = '@';
-
+            return (char)int.Parse(s);
         }
-
-        void writeScreen()
-        {
-            String res = "";
-            for (int i = h - 1; i >= 0; i--)
-            {
-                for (int j = 0; j < w; j++)
-                {
-                    res += screen[i][j];
-                }
-                res += '\n';
-            }
-
-            Console.WriteLine(res);
-
-        }
-
-
     }
 }
