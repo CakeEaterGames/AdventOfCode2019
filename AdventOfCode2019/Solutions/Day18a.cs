@@ -81,7 +81,7 @@ namespace AdventOfCode2019.Solutions
                 {
                     public char end;
                     public int visited;
-                    public State(char c, int p,int num)
+                    public State(char c, int p, int num)
                     {
                         end = c;
                         visited = p;
@@ -90,16 +90,17 @@ namespace AdventOfCode2019.Solutions
                     public int NumbOfNodes;
                     public override string ToString()
                     {
-                        return String.Format("{0}, {1}, {2}", Convert.ToString(visited,toBase:2), end, NumbOfNodes);
+                        return String.Format("{0}, {1}, {2}", Convert.ToString(visited, toBase: 2), end, NumbOfNodes);
                     }
                 }
+
 
                 public static Dictionary<State, int> mem = new Dictionary<State, int>();
                 public static Queue<State> needUpdate = new Queue<State>();
 
                 public static int min = int.MaxValue;
 
-                public static int scan(char startChar)
+                public static void scan(char startChar)
                 {
                     var startState = new State(startChar, MaskAdd(0,charToInt(startChar)), 1);
                     needUpdate.Enqueue(startState);
@@ -109,41 +110,43 @@ namespace AdventOfCode2019.Solutions
 
                     while (needUpdate.Count > 0)
                     {
+                        /*
                         if (needUpdate.Count%100==0)
                         {
                             Console.WriteLine(needUpdate.Count);
                         }
-                        var state = needUpdate.Dequeue();
+                        */
+                        var curState = needUpdate.Dequeue();
              
-                        if (state.NumbOfNodes == maxLength+1)
+                        if (curState.NumbOfNodes == maxLength+1)
                         {
-                            if (min > mem[state])
+                            if (min > mem[curState])
                             {
-                                min = mem[state];
-                                Console.WriteLine(state + " " + mem[state]);
+                                min = mem[curState];
+                                //Console.WriteLine(state + " " + mem[state]);
                             }
                         }
                         else
                         {
-                            var n1 = nodes[state.end];
+                            var n1 = nodes[curState.end];
                             foreach (var n2 in n1.links)
                             {
-                                if (!isIn(state.visited, charToInt(n2.Key)))
+                                if (!isIn(curState.visited, charToInt(n2.Key)))
                                 {
-                                    if (isSubset(state.visited, n1.locks3[n2.Key]))
+                                    if (isSubset(curState.visited, n1.locks3[n2.Key]))
                                     {
                                         State dest = new State();
                                         dest.end = n2.Key;
-                                        dest.visited = MaskAdd(state.visited, charToInt(n2.Key));
-                                        dest.NumbOfNodes = state.NumbOfNodes + 1;
+                                        dest.visited = MaskAdd(curState.visited, charToInt(n2.Key));
+                                        dest.NumbOfNodes = curState.NumbOfNodes + 1;
 
                                         if (!mem.ContainsKey(dest))
                                         {
-                                            mem.Add(dest, mem[state] + n2.Value);
+                                            mem.Add(dest, mem[curState] + n2.Value);
                                         }
                                         else
                                         {
-                                            mem[dest] = Math.Min(mem[dest], mem[state] + n2.Value);
+                                            mem[dest] = Math.Min(mem[dest], mem[curState] + n2.Value);
                                         }
 
                                         if (!needUpdate.Contains(dest))
@@ -155,10 +158,7 @@ namespace AdventOfCode2019.Solutions
                             }
                         }
                     }
-                    return 0;
                 }
-
-
 
 
             }
@@ -361,7 +361,7 @@ namespace AdventOfCode2019.Solutions
                 s.scanFrom(c);
 
             }
-
+            /*
             foreach (var a in scaner.nodes)
             {
                 Console.WriteLine();
@@ -370,7 +370,8 @@ namespace AdventOfCode2019.Solutions
                     Console.WriteLine("{0} -> {1} : {2} : {3}", a.Key, b, a.Value.links[b], a.Value.locks[b]);
                 }
             }
-
+            */
+            Console.WriteLine("Wait for it...");
             foreach (var a in scaner.nodes)
             {
                 a.Value.genBinMask();
@@ -380,7 +381,7 @@ namespace AdventOfCode2019.Solutions
 
             int st = scaner.node.MaskAdd(0, scaner.node.charToInt('@'));
 
-            var r = scaner.node.scan('@');
+            scaner.node.scan('@');
 
 
 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AdventOfCode2019.Solutions
 {
-    public class Day18a_copy : Problem
+    public class Day18b : Problem
     {
 
 
@@ -38,40 +38,41 @@ namespace AdventOfCode2019.Solutions
                 //  public static int minimumLength = int.MaxValue;
                 public static int minimumLength = int.MaxValue;
                 public static int calls = 0;
- 
 
 
-                public void genLocks2()
+
+                public void genBinMask()
                 {
                     foreach (var item in locks)
                     {
                         locks3.Add(item.Key, 0);
                         foreach (var c in locks[item.Key])
                         {
-                            locks3[item.Key]=  MaskAdd(locks3[item.Key], charToInt(c));
-                           
+                            locks3[item.Key] = MaskAdd(locks3[item.Key], charToInt(c));
                         }
-
-                       // Console.WriteLine(locks[item.Key] + " "+Convert.ToString(locks3[item.Key],toBase:2));
-
                     }
                 }
-
-
 
                 public static int charToInt(char c)
                 {
-                    if (c>='a' && c<='z')
+                    if (c >= 'a' && c <= 'z')
                     {
-                        return c - 'a';
+                        return c - 'a'+4;
                     }
                     else
                     {
-                        return 27;
-                    }
-                }
+                        switch (c)
+                        {
+                            case '@': return 0;
+                            case '$': return 1;
+                            case '&': return 2;
+                            case '*': return 3;
+                        }
 
-               public static int MaskAdd(int mask, int bit)
+                    }
+                    return -1;
+                }
+                public static int MaskAdd(int mask, int bit)
                 {
                     return mask | (1 << bit);
                 }
@@ -84,40 +85,160 @@ namespace AdventOfCode2019.Solutions
                     return (mask & (1 << bit)) == (1 << bit);
                 }
 
-                public int search(int path, int length, int count)
+            
+                public struct State
                 {
-                    int minLen = int.MaxValue;
-                    //Console.WriteLine(Convert.ToString(path, toBase: 2));
-                   // Console.WriteLine(count);
-                   // Console.WriteLine(links.Count);
-                    if (length < minimumLength)
+                    public char end1;
+                    public char end2;
+                    public char end3;
+                    public char end4;
+
+                    public int visited;
+
+                    public int NumbOfNodes;
+
+                    public State(State s)
                     {
-                        if (count == links.Count)
+                        end1 = s.end1;
+                        end2 = s.end2;
+                        end3 = s.end3;
+                        end4 = s.end4;
+
+                        visited = s.visited;
+                    
+
+                        NumbOfNodes = s.NumbOfNodes;
+                    }
+ 
+
+                    public override string ToString()
+                    {
+                        return String.Format("{0} ({1},{2},{3},{4}) {5}", Convert.ToString(visited,toBase:2), end1, end2, end3, end4, NumbOfNodes);
+                    }
+                }
+
+                public static Dictionary<State, int> mem = new Dictionary<State, int>();
+                public static Queue<State> needUpdate = new Queue<State>();
+
+                public static int min = int.MaxValue;
+
+                public static void scanN(State curState, int n)
+                {
+                    node n1;
+                    int visited = curState.visited;
+                    switch (n)
+                    {
+                        case 0: n1 = nodes[curState.end1];  break;
+                        case 1: n1 = nodes[curState.end2];  break;
+                        case 2: n1 = nodes[curState.end3]; break;
+                        case 3: n1 = nodes[curState.end4];  break;
+                        default: n1 = nodes[curState.end1];  break;
+                    }
+
+                
+                    foreach (var n2 in n1.links)
+                    {
+                        if (!isIn(visited, charToInt(n2.Key)))
                         {
-                            minLen = length;
-                            if (length < minimumLength)
+                            if (isSubset(visited, n1.locks3[n2.Key]))
                             {
-                                minimumLength = length;
-                                Console.WriteLine("min:"+path + " " + length);
-                            }
-                        }
-                        else
-                        {
-                            foreach (var k in links.Keys)
-                            {
-                                if (!isIn(path, charToInt(k)))
+                                State dest = new State(curState);
+
+                                switch (n)
                                 {
-                                    if (isSubset(path, locks3[k]))
-                                    {
-                                        minLen = Math.Min(minLen, scaner.nodes[k].search(MaskAdd(path, charToInt(k)), length + links[k],count+1));
-                                    }
+                                    case 0: dest.end1 = n2.Key; break;
+                                    case 1: dest.end2 = n2.Key; break;
+                                    case 2: dest.end3 = n2.Key; break;
+                                    case 3: dest.end4 = n2.Key; break;
+                                    default: dest.end1 = n2.Key; break;
+                                }
+
+                             
+                                dest.visited = MaskAdd(visited, charToInt(n2.Key));
+                                dest.NumbOfNodes = curState.NumbOfNodes + 1;
+
+                                if (!mem.ContainsKey(dest))
+                                {
+                                    mem.Add(dest, mem[curState] + n2.Value);
+                                }
+                                else
+                                {
+                                    mem[dest] = Math.Min(mem[dest], mem[curState] + n2.Value);
+                                }
+
+                                if (!needUpdate.Contains(dest))
+                                {
+                                    needUpdate.Enqueue(dest);
                                 }
                             }
                         }
                     }
-                    
-                    return minLen;
                 }
+
+                public static void scan(char[] startChar)
+                {
+                    var startState = new State();
+
+                    startState.end1 = startChar[0];
+                    startState.end2 = startChar[1];
+                    startState.end3 = startChar[2];
+                    startState.end4 = startChar[3];
+
+                    int mask = 0;
+                    for (int i = 0; i < startChar.Length; i++)
+                    {
+                        //Console.WriteLine("MASK" + Convert.ToString(mask, toBase: 2));
+                        mask = MaskAdd(mask, charToInt(startChar[i]));
+                    }
+                  //  mask = MaskAdd(mask, charToInt('a'));
+                 //   mask = MaskAdd(mask, charToInt('z'));
+                    //Console.WriteLine("MASK" + Convert.ToString(mask, toBase: 2));
+                    startState.visited = mask;
+                
+
+                    startState.NumbOfNodes = 4;
+
+                    needUpdate.Enqueue(startState);
+                    mem.Add(startState, 0);
+
+                    int maxLength = 0;
+                    foreach (char item in startChar)
+                    {
+                        //Console.WriteLine("MAX LENGTH " + maxLength);
+                        maxLength += nodes[item].links.Count;
+                    }
+                   // Console.WriteLine("MAX LENGTH "+maxLength);
+                  
+
+                    while (needUpdate.Count > 0)
+                    { /*
+                        if (needUpdate.Count%100==0)
+                        {
+                            Console.WriteLine(needUpdate.Count);
+                        }
+                         */
+                        var curState = needUpdate.Dequeue();
+
+                     //   Console.WriteLine(curState + " length: " + mem[curState]);
+                        if (curState.NumbOfNodes == maxLength+4)
+                        {
+                            if (min > mem[curState])
+                            {
+                                min = mem[curState];
+                                //Console.WriteLine(state + " " + mem[state]);
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0;i<=3;i++)
+                            {
+                                scanN(curState, i);
+                            }
+                            
+                        }
+                    }
+                }
+
 
             }
 
@@ -265,7 +386,7 @@ namespace AdventOfCode2019.Solutions
                 {
                     return block.empty;
                 }
-                if (c == '@')
+                if (c == '@' || c == '$' || c == '&' || c == '*')
                 {
                     return block.player;
                 }
@@ -292,23 +413,62 @@ namespace AdventOfCode2019.Solutions
         {
             map = input.Replace("\r\n", "\n");
 
-            scaner.map = map;
-            scaner.wd = map.IndexOf("\n") + 1;
+            int wd = map.IndexOf("\n") + 1;
+          
+            int center = map.IndexOf('@');
+            int sx = center % wd;
+            int sy = center / wd;
 
+            StringBuilder sb = new StringBuilder(map);
+
+            sb[sx - 1 + (sy-1) * wd] = '@';
+            sb[sx + (sy - 1) * wd] = '#';
+            sb[sx + 1 + (sy - 1) * wd] = '$';
+
+            sb[sx - 1 + sy * wd] = '#';
+            sb[sx + sy * wd] = '#';
+            sb[sx + 1 + sy * wd] = '#';
+
+            sb[sx - 1 + (sy + 1) * wd] = '*';
+            sb[sx + (sy + 1) * wd] = '#';
+            sb[sx + 1 + (sy + 1) * wd] = '&';
+
+
+
+            map = sb.ToString();
+            //Console.WriteLine(map);
             var srch = input.Replace(".", "").Replace("\n", "").Replace("\r", "").Replace("#", "");
 
-            var n = new scaner.node();
-            n.name = '@';
-            scaner.nodes.Add('@', n);
+
+            var n1 = new scaner.node();
+            n1.name = '@';
+            scaner.nodes.Add('@', n1);
+
+            var n2 = new scaner.node();
+            n2.name = '$';
+            scaner.nodes.Add('$', n2);
+
+            var n3 = new scaner.node();
+            n3.name = '&';
+            scaner.nodes.Add('&', n3);
+
+            var n4 = new scaner.node();
+            n4.name = '*';
+            scaner.nodes.Add('*', n4);
+
+
+            scaner.map = map;
+            scaner.wd = wd;
+
 
             foreach (char c in srch)
             {
                 if (char.IsLower(c) && !scaner.nodes.ContainsKey(c))
                 {
-                    n = new scaner.node();
+                    scaner.node n = new scaner.node();
                     n.name = c;
                     scaner.nodes.Add(c, n);
-                    //  Console.WriteLine(c);
+                    //Console.WriteLine(c);
                 }
 
             }
@@ -319,7 +479,7 @@ namespace AdventOfCode2019.Solutions
                 s.scanFrom(c);
 
             }
-
+          /*
             foreach (var a in scaner.nodes)
             {
                 Console.WriteLine();
@@ -328,20 +488,24 @@ namespace AdventOfCode2019.Solutions
                     Console.WriteLine("{0} -> {1} : {2} : {3}", a.Key, b, a.Value.links[b], a.Value.locks[b]);
                 }
             }
-
+          */
+         //   Console.WriteLine("Wait for it...");
             foreach (var a in scaner.nodes)
             {
-                a.Value.genLocks2();
-
+                a.Value.genBinMask();
             }
 
-            int st= scaner.node.MaskAdd(0, scaner.node.charToInt('@'));
- 
 
-            output = "" + scaner.nodes['@'].search(st, 0,0);
+
+           // int st = scaner.node.MaskAdd(0, scaner.node.charToInt('@'));
+
+            scaner.node.scan(new char[] { '@', '$', '&', '*' });
+            
+
+            output = "" + scaner.node.min;
 
         }
-
+      
 
     }
 }

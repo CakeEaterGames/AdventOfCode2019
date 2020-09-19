@@ -12,7 +12,9 @@ namespace AdventOfCode2019
     {
         static void Main(string[] args)
         {
-            Problem a = new Day18a();
+            DateTime TimerStart = DateTime.Now;
+
+            Problem a = new Day18b();
             StreamReader sr = new StreamReader("input.txt");
             StreamWriter sw = new StreamWriter("output.txt");
 
@@ -26,7 +28,7 @@ namespace AdventOfCode2019
 
             sr.Close();
             sw.Close();
-            Console.WriteLine("Finished");
+            Console.WriteLine("Finished " +(DateTime.Now-TimerStart));
             Console.ReadLine();
         }
     }
