@@ -41,7 +41,7 @@ namespace AdventOfCode2019.Solutions
 
 
 
-                public void prepare()
+                public void genBinMask()
                 {
                     foreach (var item in locks)
                     {
@@ -51,19 +51,17 @@ namespace AdventOfCode2019.Solutions
                             locks3[item.Key] = MaskAdd(locks3[item.Key], charToInt(c));
                         }
                     }
-
-
                 }
 
                 public static int charToInt(char c)
                 {
                     if (c >= 'a' && c <= 'z')
                     {
-                        return c - 'a';
+                        return c - 'a'+1;
                     }
                     else
                     {
-                        return 27;
+                        return 0;
                     }
                 }
                 public static int MaskAdd(int mask, int bit)
@@ -79,52 +77,89 @@ namespace AdventOfCode2019.Solutions
                     return (mask & (1 << bit)) == (1 << bit);
                 }
 
-
-                public struct state
+                public struct State
                 {
-                    public int length;
-                    //bin mask
-                    public int path;
-                    public state(int l, int p)
+                    public char end;
+                    public int visited;
+                    public State(char c, int p,int num)
                     {
-                        length = l;
-                        path = p;
+                        end = c;
+                        visited = p;
+                        NumbOfNodes = num;
+                    }
+                    public int NumbOfNodes;
+                    public override string ToString()
+                    {
+                        return String.Format("{0}, {1}, {2}", Convert.ToString(visited,toBase:2), end, NumbOfNodes);
                     }
                 }
- 
 
-                // a dictionary of distinations and lengths. a key is a bin mask of a path(the order doesn't matter).
-                //a length is a shortest distance to achieve that path
-                public static Dictionary<int, int> memory = new Dictionary<int, int>();
-                
-                
+                public static Dictionary<State, int> mem = new Dictionary<State, int>();
+                public static Queue<State> needUpdate = new Queue<State>();
 
-                public static int fillBranchesFrom(char start, int path, int count)
+                public static int min = int.MaxValue;
+
+                public static int scan(char startChar)
                 {
-                    var n = nodes[start];
+                    var startState = new State(startChar, MaskAdd(0,charToInt(startChar)), 1);
+                    needUpdate.Enqueue(startState);
+                    mem.Add(startState, 0);
 
-                    foreach (var n2 in n.links)
+                    int maxLength = nodes[startChar].links.Count;
+
+                    while (needUpdate.Count > 0)
                     {
-                        if (!isIn(path, charToInt(n2.Key))) // if haven't visited n2 yet
+                        if (needUpdate.Count%100==0)
                         {
-                            if (isSubset(path, n.locks3[n2.Key])) // if all conditions are met
+                            Console.WriteLine(needUpdate.Count);
+                        }
+                        var state = needUpdate.Dequeue();
+             
+                        if (state.NumbOfNodes == maxLength+1)
+                        {
+                            if (min > mem[state])
                             {
-                                int length = memory[path] + n2.Value;
-                                int newPath = MaskAdd(path, charToInt(n2.Key));
-                                if (memory.ContainsKey(newPath))
+                                min = mem[state];
+                                Console.WriteLine(state + " " + mem[state]);
+                            }
+                        }
+                        else
+                        {
+                            var n1 = nodes[state.end];
+                            foreach (var n2 in n1.links)
+                            {
+                                if (!isIn(state.visited, charToInt(n2.Key)))
                                 {
-                                    memory[newPath] = Math.Min(length, memory[newPath]);
-                                }
-                                else
-                                {
-                                    memory.Add(newPath,length);
+                                    if (isSubset(state.visited, n1.locks3[n2.Key]))
+                                    {
+                                        State dest = new State();
+                                        dest.end = n2.Key;
+                                        dest.visited = MaskAdd(state.visited, charToInt(n2.Key));
+                                        dest.NumbOfNodes = state.NumbOfNodes + 1;
+
+                                        if (!mem.ContainsKey(dest))
+                                        {
+                                            mem.Add(dest, mem[state] + n2.Value);
+                                        }
+                                        else
+                                        {
+                                            mem[dest] = Math.Min(mem[dest], mem[state] + n2.Value);
+                                        }
+
+                                        if (!needUpdate.Contains(dest))
+                                        {
+                                            needUpdate.Enqueue(dest);
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
-
                     return 0;
                 }
+
+
+
 
             }
 
@@ -338,14 +373,20 @@ namespace AdventOfCode2019.Solutions
 
             foreach (var a in scaner.nodes)
             {
-                a.Value.prepare();
-
+                a.Value.genBinMask();
             }
+
+
 
             int st = scaner.node.MaskAdd(0, scaner.node.charToInt('@'));
 
+            var r = scaner.node.scan('@');
 
-            output = "" + scaner.nodes['@'].search(st, 0, 0);
+
+
+
+
+            output = "" + scaner.node.min;
 
         }
 
