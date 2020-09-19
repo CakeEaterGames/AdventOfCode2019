@@ -11,7 +11,6 @@ namespace AdventOfCode2019.Solutions
 
         public override void Calc()
         {
-
             var inp = Tools.StringToIntArray(input);
 
             int sum = 0;

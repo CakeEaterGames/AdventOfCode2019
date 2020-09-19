@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AdventOfCode2019.Solutions
 {
-    public class Day18a : Problem
+    public class Day18a_copy : Problem
     {
 
 
@@ -38,26 +38,30 @@ namespace AdventOfCode2019.Solutions
                 //  public static int minimumLength = int.MaxValue;
                 public static int minimumLength = int.MaxValue;
                 public static int calls = 0;
+ 
 
 
-
-                public void prepare()
+                public void genLocks2()
                 {
                     foreach (var item in locks)
                     {
                         locks3.Add(item.Key, 0);
                         foreach (var c in locks[item.Key])
                         {
-                            locks3[item.Key] = MaskAdd(locks3[item.Key], charToInt(c));
+                            locks3[item.Key]=  MaskAdd(locks3[item.Key], charToInt(c));
+                           
                         }
+
+                       // Console.WriteLine(locks[item.Key] + " "+Convert.ToString(locks3[item.Key],toBase:2));
+
                     }
-
-
                 }
+
+
 
                 public static int charToInt(char c)
                 {
-                    if (c >= 'a' && c <= 'z')
+                    if (c>='a' && c<='z')
                     {
                         return c - 'a';
                     }
@@ -66,7 +70,8 @@ namespace AdventOfCode2019.Solutions
                         return 27;
                     }
                 }
-                public static int MaskAdd(int mask, int bit)
+
+               public static int MaskAdd(int mask, int bit)
                 {
                     return mask | (1 << bit);
                 }
@@ -79,51 +84,39 @@ namespace AdventOfCode2019.Solutions
                     return (mask & (1 << bit)) == (1 << bit);
                 }
 
-
-                public struct state
+                public int search(int path, int length, int count)
                 {
-                    public int length;
-                    //bin mask
-                    public int path;
-                    public state(int l, int p)
+                    int minLen = int.MaxValue;
+                    //Console.WriteLine(Convert.ToString(path, toBase: 2));
+                   // Console.WriteLine(count);
+                   // Console.WriteLine(links.Count);
+                    if (length < minimumLength)
                     {
-                        length = l;
-                        path = p;
-                    }
-                }
- 
-
-                // a dictionary of distinations and lengths. a key is a bin mask of a path(the order doesn't matter).
-                //a length is a shortest distance to achieve that path
-                public static Dictionary<int, int> memory = new Dictionary<int, int>();
-                
-                
-
-                public static int fillBranchesFrom(char start, int path, int count)
-                {
-                    var n = nodes[start];
-
-                    foreach (var n2 in n.links)
-                    {
-                        if (!isIn(path, charToInt(n2.Key))) // if haven't visited n2 yet
+                        if (count == links.Count)
                         {
-                            if (isSubset(path, n.locks3[n2.Key])) // if all conditions are met
+                            minLen = length;
+                            if (length < minimumLength)
                             {
-                                int length = memory[path] + n2.Value;
-                                int newPath = MaskAdd(path, charToInt(n2.Key));
-                                if (memory.ContainsKey(newPath))
+                                minimumLength = length;
+                                Console.WriteLine("min:"+path + " " + length);
+                            }
+                        }
+                        else
+                        {
+                            foreach (var k in links.Keys)
+                            {
+                                if (!isIn(path, charToInt(k)))
                                 {
-                                    memory[newPath] = Math.Min(length, memory[newPath]);
-                                }
-                                else
-                                {
-                                    memory.Add(newPath,length);
+                                    if (isSubset(path, locks3[k]))
+                                    {
+                                        minLen = Math.Min(minLen, scaner.nodes[k].search(MaskAdd(path, charToInt(k)), length + links[k],count+1));
+                                    }
                                 }
                             }
                         }
                     }
-
-                    return 0;
+                    
+                    return minLen;
                 }
 
             }
@@ -338,14 +331,14 @@ namespace AdventOfCode2019.Solutions
 
             foreach (var a in scaner.nodes)
             {
-                a.Value.prepare();
+                a.Value.genLocks2();
 
             }
 
-            int st = scaner.node.MaskAdd(0, scaner.node.charToInt('@'));
+            int st= scaner.node.MaskAdd(0, scaner.node.charToInt('@'));
+ 
 
-
-            output = "" + scaner.nodes['@'].search(st, 0, 0);
+            output = "" + scaner.nodes['@'].search(st, 0,0);
 
         }
 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AdventOfCode2019.Solutions
 {
-    public class Day18a_backup : Problem
+    public class Day18a_simple_and_slow : Problem
     {
 
 
@@ -33,56 +33,56 @@ namespace AdventOfCode2019.Solutions
                 public char name;
                 public Dictionary<char, int> paths = new Dictionary<char, int>();
                 public Dictionary<char, string> locks = new Dictionary<char, string>();
+                public Dictionary<char, HashSet<char>> locks2 = new Dictionary<char, HashSet<char>>();
 
-                public static int minimumLength = int.MaxValue;
+                //  public static int minimumLength = int.MaxValue;
+                public static int minimumLength = 5400;
                 public static int calls = 0;
 
-                public int search(string path, int length)
+                public void genLocks2()
                 {
-                    calls++;
-                    if (path.Length==2)
+                    foreach (var item in locks)
                     {
-                        Console.WriteLine(path[1]);
+                        locks2.Add(item.Key,new HashSet<char>());
+                        foreach (var c in locks[item.Key])
+                        {
+                            locks2[item.Key].Add(c);
+                        }
                     }
-                    //Console.WriteLine(calls);
+                }
+
+
+                public int search(HashSet<char> path, int length)
+                {
                     int minLen = int.MaxValue;
                     if (length < minimumLength)
                     {
-                        bool deadEnd = true;
-                      
-                        foreach (var k in paths.Keys)
+                        if (path.Count == paths.Count + 1)
                         {
-                            if (!path.Contains(k))
-                            {
-                                bool available = true;
-                                foreach (var l in locks[k])
-                                {
-                                    if (!path.Contains(l))
-                                    {
-                                        available = false;
-                                        break;
-                                    }
-                                }
-                                if (available)
-                                {
-                                    deadEnd = false;
-                                    minLen = Math.Min(minLen, scaner.nodes[k].search(path + k, length + paths[k]));
-                                }
-                            }
-                        }
-                        if (deadEnd)
-                        {
-                            //Console.WriteLine(path+" "+length);
                             minLen = length;
                             if (length < minimumLength)
                             {
                                 minimumLength = length;
                                 Console.WriteLine(path + " " + length);
                             }
-
+                        }
+                        else
+                        {
+                            foreach (var k in paths.Keys)
+                            {
+                                if (!path.Contains(k))
+                                {
+                                    if (locks2[k].IsSubsetOf(path))
+                                    {
+                                        path.Add(k);
+                                        minLen = Math.Min(minLen, scaner.nodes[k].search(path, length + paths[k]));
+                                        path.Remove(k);
+                                    }
+                                }
+                            }
                         }
                     }
-                    calls--;
+                    
                     return minLen;
                 }
 
@@ -97,6 +97,8 @@ namespace AdventOfCode2019.Solutions
             Stack<point> toScan = new Stack<point>();
             public Dictionary<point, int> scanned = new Dictionary<point, int>();
             public Dictionary<point, string> locks = new Dictionary<point, string>();
+
+
             public static int wd;
             char stChar;
 
@@ -251,7 +253,7 @@ namespace AdventOfCode2019.Solutions
             }
 
         }
- 
+
         string map;
         public override void Calc()
         {
@@ -282,7 +284,7 @@ namespace AdventOfCode2019.Solutions
             {
                 var s = new scaner();
                 s.scanFrom(c);
-                
+
             }
 
             foreach (var a in scaner.nodes)
@@ -294,9 +296,19 @@ namespace AdventOfCode2019.Solutions
                 }
             }
 
-            
+            foreach (var a in scaner.nodes)
+            {
+                a.Value.genLocks2();
 
-           output = ""+ scaner.nodes['@'].search("@",0);
+            }
+               
+
+
+            HashSet<char> st = new HashSet<char>();
+            
+            st.Add('@');
+
+            output = "" + scaner.nodes['@'].search(st, 0);
 
         }
 
