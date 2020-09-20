@@ -489,7 +489,7 @@ namespace AdventOfCode2019.Solutions
                 }
             }
           */
-         //   Console.WriteLine("Wait for it...");
+            //Console.WriteLine("Wait for it...");
             foreach (var a in scaner.nodes)
             {
                 a.Value.genBinMask();
